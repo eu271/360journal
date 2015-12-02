@@ -1,3 +1,4 @@
+/* global $ */
 /*
  * The MIT License
  *
@@ -22,6 +23,70 @@
  * THE SOFTWARE.
  */
 
-$(document).ready(function() {
-  
+var pages = {
+  'login': {
+    'path': '/login',
+    'class': 'login',
+    'isSetup': false,
+    'setup': setupLogin
+  },
+  'register': {
+    'path': '/register',
+    'class': 'register',
+    'isSetup': false,
+    'setup': null
+  },
+  'entries': {
+    'path': '/entries',
+    'class': 'entries',
+    'isSetup': false
+  },
+  'editor': {
+    'path': '/editor',
+    'class': 'editor',
+    'isSetup': false
+  },
+  'stats': {
+    'path': '/stats',
+    'class': 'stats',
+    'isSetup': false
+  }
+}
+
+var changePage = function (page) {
+  // Clear the webpage.
+  $('.page').css('display', 'none')
+
+  $('.' + pages[page].class).css('display', 'block')
+}
+
+var isUserLogin = function () {
+  return pages['login'].userLogin
+}
+
+var setupLogin = function () {
+  $('form.login').submit(function (ev) {
+    $.post(pages['login'].path, $(this).serialize(), function (data) {
+      var resp = JSON.parse(data)
+      if (resp.valid) {
+        pages['login'].userLogin = true
+
+        changePage('editor')
+      }else {
+        $('error-login').css('display', 'block')
+      }
+    })
+
+    ev.preventDefault()
+  })
+
+  pages['login'].setup = true
+}
+
+$(document).ready(function () {
+  if (isUserLogin()) {
+    changePage('editor')
+  }else {
+    changePage('login')
+  }
 })

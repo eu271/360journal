@@ -23,6 +23,10 @@
         <servlet-name>GetPDF</servlet-name>
         <servlet-class>com.e271.journal.servlets.GetPDF</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>GetImage</servlet-name>
+        <servlet-class>com.e271.journal.servlets.GetImage</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>GetEntries</servlet-name>
         <url-pattern>/getEntries</url-pattern>
@@ -42,6 +46,10 @@
     <servlet-mapping>
         <servlet-name>GetPDF</servlet-name>
         <url-pattern>/getPDF</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetImage</servlet-name>
+        <url-pattern>/getImage</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>

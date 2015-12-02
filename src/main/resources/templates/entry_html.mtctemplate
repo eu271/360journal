@@ -1,1 +1,9 @@
 
+{{#entries}}
+<li>
+    <h2 class="entry-title">{{title}}</h2>
+    <p class="entry-content">{{content}}</p>
+    <img class="entry-img" src="/getImage/{{date}}">
+    <time datetime="{{date}}">{{date}}</time>
+</li>
+{{/entries}}

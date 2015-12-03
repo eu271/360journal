@@ -27,6 +27,10 @@ import com.e271.journal.core.Journal;
 import com.e271.journal.core.User;
 import com.e271.journal.core.persistant.PersistanJournalSQL;
 import com.e271.journal.core.persistant.PersistantJournal;
+import com.github.mustachejava.DefaultMustacheFactory;
+import com.github.mustachejava.Mustache;
+import com.github.mustachejava.MustacheFactory;
+import java.io.PrintWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletContext;
@@ -52,19 +56,16 @@ public class ServletContextInit implements ServletContextListener {
         this.j = new Journal(
                 new PersistanJournalSQL(URL, USERNAME, PASSWORD));
         
-        User _user = new User("pepe", "pepe", "pepe");
-        
         System.out.println("Initializaicing server configuration.");
         this.context = sce.getServletContext();
 
         this.context.setAttribute("Journal", j);
-        
-        try {
-            j.addUser("Jose", "Jose pepe", "asdasd");
-        } catch (Exception ex) {
-            Logger.getLogger(ServletContextInit.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
+        /*
+        MustacheFactory mf = new DefaultMustacheFactory();
+        Mustache mustache = mf.compile(
+                ServletContextInit.class
+                        .getResource("/templates/entry_html.template")
+                        .toString());*/
     }
 
     @Override

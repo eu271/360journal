@@ -23,14 +23,29 @@
  */
 package com.e271.journal.servlets;
 
+import com.e271.journal.core.Journal;
 import com.e271.journal.core.User;
+import com.e271.journal.core.exceptions.TooManyCharacters;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.apache.tomcat.util.http.fileupload.FileItem;
+import org.apache.tomcat.util.http.fileupload.FileUploadException;
+import org.apache.tomcat.util.http.fileupload.disk.DiskFileItemFactory;
+import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload;
 
 /**
  *
@@ -38,35 +53,9 @@ import javax.servlet.http.HttpSession;
  */
 public class AddEntry extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet AddEntry</title>");            
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet AddEntry at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-        
-        
-    }
-
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    private static final Set<String> FORM_FIELDS = new HashSet<>(Arrays.asList(
+            new String[] {"title","content","date","photo"}
+    ));
     /**
      * Handles the HTTP <code>GET</code> method.
      *
@@ -93,15 +82,70 @@ public class AddEntry extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if ( ! request.isSecure()) {
+        
+        PrintWriter respText;
+        Journal j = (Journal) this.getServletContext().getAttribute("Journal");
+        respText = response.getWriter();
+        HttpSession session = request.getSession(false);
+        
+        if ( ! request.isSecure() || 
+                session == null) {
             //Should send error badRequest.
+            response.setContentType("text/html;charset=UTF-8");
+            response.sendError(400, "Petition isecure or not login.");
+            return;
+        }
+        
+        User user = (User) session.getAttribute("user");
+        
+        String title = null;
+        String content = null;
+        Calendar date = null;
+        byte[] photo = null;
+        
+        try {
+            Map items = new ServletFileUpload(new DiskFileItemFactory()).parseParameterMap(request);
+            
+            for (Object item : items.values() ) {
+                FileItem formItem = (FileItem) item;
+                if ( ! FORM_FIELDS.contains(formItem.getFieldName())) {
+                    response.setContentType("text/html;charset=UTF-8");
+                    response.sendError(400, "Bad form.");
+                    return;
+                }
+                if (formItem.isFormField()) {
+                    //TODO: Rewrite better.
+                    switch (formItem.getFieldName()) {
+                        case "title":
+                            title = formItem.getString();
+                            break;
+                        case "content":
+                            content = formItem.getString();
+                            break;
+                        case "date":
+                            date = new GregorianCalendar();
+                            date.setTimeInMillis(
+                                    Long.valueOf(formItem.getString()));
+                            break;
+                    }
+                }else {
+                    //Maybe check image size.
+                    photo = formItem.get();
+                }
+             }
+            
+        } catch (FileUploadException ex) {
+            Logger.getLogger(AddEntry.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         
-        HttpSession session = request.getSession(false);
         
-        String userId = (String) session.getAttribute("user_id");
         
+        try {
+            j.addEntry(user.getId(), title, content, photo);
+        } catch (TooManyCharacters ex) {
+            Logger.getLogger(AddEntry.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         
     }

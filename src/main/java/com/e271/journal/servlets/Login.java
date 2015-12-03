@@ -24,14 +24,8 @@
 package com.e271.journal.servlets;
 
 import com.e271.journal.core.Journal;
-import com.e271.journal.core.User;
-import com.e271.journal.util.PasswordHash;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -80,8 +74,9 @@ public class Login extends HttpServlet {
         
         
         
-        String userName = request.getParameter("name");
+        String userName = request.getParameter("username");
         String userPassword = request.getParameter("password");
+        System.out.println(userName + " password: " + userPassword);
         boolean validUser = j.validateUser(userName, userPassword);
         
         
@@ -89,7 +84,7 @@ public class Login extends HttpServlet {
                 userName == null || userPassword == null ||
                 ! validUser ) {
             //Should be error, as the user trying to login through unsecure connection.
-            respText.print("{valid:false}");
+            respText.print("{\"valid\":false}");
             respText.flush();
             return;
         }
@@ -102,7 +97,7 @@ public class Login extends HttpServlet {
         session = request.getSession();
         session.setAttribute("user", j.getUser(userName));
 
-        respText.print("{valid:true}");
+        respText.print("{\"valid\":true}");
         respText.flush();
     }
 

@@ -1,4 +1,4 @@
-/* global $ */
+/* global $, FormData*/
 /*
  * The MIT License
  *
@@ -37,14 +37,17 @@ var pages = {
     'setup': null
   },
   'entries': {
-    'path': '/entries',
+    'path': '/getEntries',
     'class': 'entries',
-    'isSetup': false
+    'isSetup': false,
+    'setup': setupEntries,
+    'update': addEnties
   },
   'editor': {
-    'path': '/editor',
+    'path': '/addEntry',
     'class': 'editor',
-    'isSetup': false
+    'isSetup': false,
+    'setup': setupEditor
   },
   'stats': {
     'path': '/stats',
@@ -63,7 +66,9 @@ var changePage = function (page) {
 var isUserLogin = function () {
   return pages['login'].userLogin
 }
-
+/**
+ * Setup Login form.
+ */
 var setupLogin = function () {
   $('form.login').submit(function (ev) {
     $.post(pages['login'].path, $(this).serialize(), function (data) {
@@ -73,7 +78,7 @@ var setupLogin = function () {
 
         changePage('editor')
       }else {
-        $('error-login').css('display', 'block')
+        $('.login-error').css('display', 'block')
       }
     })
 
@@ -83,7 +88,47 @@ var setupLogin = function () {
   pages['login'].setup = true
 }
 
+var setupEditor = function () {
+  $('form.entry-editor').submit(function (ev) {
+    var data = new FormData()
+    data.append('title', $('form.entry-editor[name="title"]'))
+    data.append('content', $('form.entry-editor[name="content"]'))
+    data.append('date', new Date().getTime())
+    data.append('photo', $('#photoInput').prop('files')[0])
+
+    $.ajax({
+      type: 'POST',
+      url: pages['editor'].path,
+      data: data,
+      processData: false,
+      contentType: false,
+      success: function (data) {
+        alert(data)
+      }
+    })
+    ev.preventDefault()
+  })
+
+  pages['editor'].isSetup = true
+}
+
+var setupEntries = function () {
+  $.get(pages['entries'].path, function (data) {
+    $('.entries-list').append(data)
+  })
+  pages['entries'].isSetup = true
+}
+
+var addEnties = function () {
+  $.get(pages['entries'].path, function (data) {
+    $('.entries-list').append(data)
+  })
+}
+
 $(document).ready(function () {
+  setupLogin()
+  setupEditor()
+  setupEntries()
   if (isUserLogin()) {
     changePage('editor')
   }else {
